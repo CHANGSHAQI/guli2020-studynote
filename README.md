@@ -1,2 +1,787 @@
-# -2020-
-跟着视频一点点敲来的,会一直更新到学习完
+### 基础篇
+
+##### 1.vagrant快速创建linux虚拟机
+
+###### 	(1).下载virtualbox
+
+​			要开启cpu虚拟化,找到advanced->cpu Configuration->Intel Virtualization Technology
+
+
+
+###### 	(2).安装vagrant
+
+```
+			登入https://www.vagrantup.com/ 下载安装
+
+			输入vagrant验证
+
+			输入vagrant init centos/7 初始化虚拟机,找到当前目录下找到Vagrantfile文件
+
+			输入vagrant up启动当前目录下的file
+
+			输入vagrant ssh连接虚拟机
+
+			输入exit;推出当前环境,
+
+			第二天登入依旧使用vagrant up命令就行
+```
+
+
+
+##### 2.安装docker
+
+###### 	(1).端口转发
+
+```
+			找到编辑Vagrantfile
+
+			取消注释:config.vm.network "private_network", ip: “192.168.33.10”
+
+			windows下输入ifconfig找到virtualbox的虚拟网卡TPv4
+
+			如后缀为xx.xx.56.1
+
+			那么私有网络配置项就可以输入56.xx之类的
+
+			之后输入vagrant reload重启
+
+			然后再windows和虚拟机互相ping看是否成功
+```
+
+
+
+###### 	(2).安装docker
+
+```
+			docker -v     查看版本
+
+			docker images   查看镜像
+
+			systemctl enable docker    设置docker开机自启
+
+			找到阿里云的镜像加速器依照说明配置
+```
+
+
+
+###### 	(3).docker安装mysql
+
+```
+			docker  pull   mysql:5.7   拉去mysql镜像
+
+			docker images   查看镜像
+			
+
+			docker run -p 3306:3306 --name mysql \
+
+			-v /mydata/mysql/log:/var/log/mysql\
+
+			-v /mydata/mysql/data:/var/lib/mysql\
+
+			-v /mydata/mysql/conf:/etc/mysql \
+
+			-e MYSQL_ROOT_PASSWORD=root \
+
+			-d mysql:5.7                      启动mysql
+			
+			docker ps  查看启动中的容器
+			
+			docker exec -it 容器ID  /bin/bash  进入mysql容器内部
+			whereis mysql  查看mysql被安装的位置
+```
+
+​			
+
+###### 	(4).安装redis
+
+```
+	docker pull redis
+	
+	docker run -p 6379:6379 --name reids -d redis
+	
+	docker exec -it redis redis-cli   
+```
+
+​	
+
+
+
+##### 3.配置开发环境
+
+###### 	(1).配置maven
+
+```
+	1.配置阿里云镜像
+	<mirrors>
+		<mirror>
+			<id>nexus-aliyun</id>
+			<mirrorOf>central</mirrorOf>
+			<name>Nexus aliyun</name>
+			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
+		</mirror>
+	</mirrors>
+	
+	2.打开profiles注释
+	
+	3.在IDEA中settings中配置maven
+	
+	4.安装lombok和MyBatisX插件
+	
+	5.下载VSCode软件
+	
+	6.安装 Auto Close Tag,Auto Rename Tag,Chinese,ESLint,HTML Css Support,Html Snippets,javascript(ES6)code 			snippets,Live Server,open in browser,Vetur Vscode插件
+```
+
+​	
+
+###### 	(2).配置git		
+
+```
+	git config --global user.name "你的名字"
+	
+	git config --global user.email "你的邮箱"
+	
+	ssh-keygen -t rsa -C "你的邮箱"  然后三次回车
+	
+	cat ~/.ssh/id_rsa.pub  查看密钥
+	
+	将密钥复制到设置->安全设置->SSH公钥
+	
+	使用ssh -T git@gitee.com 测试是否成功
+```
+
+​		
+
+###### 	(3).使用gitee初始化项目		
+
+```java
+	在gitee创建好了项目之后,选择New->Project from Version Control->Git
+	
+	复制之前的地址
+	
+	创建微服务:
+		New->Module
+			Group:com.atguigu.gulimall
+			Artifact:gulimall-product
+			依赖:Spring Web,OpenFegin
+			
+			其它微服务:gulimall-coupon,gulimall-member,gulimall-order,gulimall-product,gulimall-ware
+	
+	聚合项目
+		选择一个pom文件放到gulimall下
+		只留下:
+			<groupId>com.atguigu.gulimall</groupId>
+			<artifactId>gulimall</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<name>gulimall</name>
+			<desciption>聚合服务</description>
+			<packaging>pom<packaging>
+			
+			<modules>
+				<module>gulimall-coupon<module>
+				<module>gulimall-member<module>
+				<module>gulimall-order<module>
+				<module>gulimall-product<module>
+				<module>gulimall-ware<module>
+			<modules>
+		
+		然后选择右边的maven插件,点击加号,选择总服务的pom.xml文件
+	
+	修改gitignore:
+		**/mvnw
+		**/mvnw.cmd
+		**/.mvn
+		**/target/
+		.idea
+		**/.gittignore
+		
+	提交到暂存区
+		Local Changes->Default Changelist
+		右击选择add to VCS
+	
+	Settings安装Gitee插件
+	
+	提交代码到码云
+		右击再次选中Default Changelist->Commit
+		填写Commit Message
+		取消Perform code analysis和Check TODO(Show ALL)
+		点击右下方的commit and push
+		
+```
+
+
+
+
+
+##### 4.数据库设计和逆向生成
+
+###### 	(1).生成数据库
+
+```java
+	docker ps -a  查看所有数据库
+	
+	docker update redis --restart=always  自启动redis
+	
+	创建数据库所有微服务的数据库,执行所有的sql脚本
+```
+
+​	
+
+###### 	(2).搭建人人开源后台管理框架		
+
+```java
+	1.配置后台框架
+	
+	选择renren-fast和renren-fast-vue框架
+	并且在本地克隆
+	
+	选择gulimall->show in Explorer
+	然后将renrne-fast里的.git删掉并且放到gulimall项目中
+	
+	将renren-fast加入maven
+		<module>renren-fast</module>
+	选择renren-fast的db文件夹下的sql脚本,创建一个数据库,然后执行sql脚本
+	
+	选择renren-fast配置application-dev.yml配置数据源
+	
+	
+	2.配置前台框架
+		同样将renren-fase-vue的.git删掉,然后用vscode导入
+		
+		安装node.js,vue
+		
+		使用淘宝镜像源:
+			npm config set registry http://registry.npm.taobao.org/
+		
+		来到前端项目控制台输入 npm install 下载所依赖的组件 根据package.json
+		
+		后台管理登入账号 admin admin
+```
+
+
+
+###### （3）逆向生成代码
+
+```java
+	以同样的方式将renren-generator项目导入到我们的项目中
+	
+	然后在总pom文件中设置:
+		<module>renren-generator</modulr>
+	
+	同时修改yml文件,为每个微服务生成代码,只需修改:
+		mysql url,username,password
+		
+	generator.properties文件的:
+		mainPath=com.atguigu
+		package=com.atguigu.gulimall
+		moduleName=product
+		author = leifengyang@gmail.com
+		tablePrefix = pms_
+	
+	然后直接运行
+		然后网页中选中所有的表然后点击生成代码
+		
+	选择下载后的文件将原先的整个main文件下及以下的整个文件替换掉
+	
+	
+	导入之后会少了很多依赖,所以创建一个gulimall-common
+	<dependencies>
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<groupId>mybatis-plus-boot-starter</artifactId>
+			<version>3.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<groupId>lombok<artifactId>
+			<version>1.18.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<groupId>httpcore</groupId>
+			<version>4.4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<groupId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<score>provided</scope>
+		</dependency>
+	</dependencies>
+	
+	剩下缺少的公共类都可以在renren-fast找到
+	
+	同时还要删除@RequiresPermissions的注解,以为我们使用的是spring security的依赖
+	其实应该在生成代码的时候就取消掉这个
+	找到renren-generator->resources->template->Controller.java.vm
+	然后去掉注解
+	
+	重新生成代码,将Controller替换掉
+	
+	后面还要删掉XssHttpServletRequestWrapper,XssFilter.用spring security的功能替换掉
+```
+
+
+
+
+
+###### (4)整合Mybatis-Plus
+
+```java
+	1.导入依赖
+	2.配置
+		(1)配置数据源
+			导入数据库驱动:
+				在common项目
+					<dependency>
+						<groupId>mysql</groupId>
+						<artifactId>mysql-connector-java</artifactId>
+						<version>8.0.17</version>
+					<dependency>
+			配置yml:
+				spring.datasource.username
+				spring.datasource.password
+				spring.datasource.url
+				spring.datasource.driver-class-name
+				
+				mybaits-plus.mapper-locations=classpath*:/mapper/**/*.xml
+				mybatis-plus.global-config.db-config.id-type=auto
+		
+		(2)配置mybatis-plus
+			使用@MapperScan
+			@MapperScan("com.atguigu.gulimall.product.dao")
+			
+			告诉Mybatis-plus,sql映射文件位置
+
+以上都是在gulimall-product下操作的,后面要为每个微服务都要生成同样的服务
+```
+
+
+
+
+
+##### 5.Spring Cloud Alibaba
+
+###### 	(1)准备父依赖		
+
+```java
+		<dependencyManagement>
+			<dependencies>
+				<dependency>
+					<groupId>com.alibaba.cloud</groupId>
+					<artifactId>spring-cloud-alibaba-dependencies</artifactId>
+					<type>pom</type>
+					<scope>import</scope>
+				</dependency>
+			</dependencies>
+		<dependencyManagement>
+```
+
+
+
+###### (2)Spring Cloud Nacos
+
+```java
+	1.作为注册中心(common服务)
+		<dependency>
+			<groupId>com.alibaba.cloud</groupId>
+			<artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+		<dependency>
+		
+		下载nacos
+		
+		然后再properties.yml中配置
+			spring.cloud.nacos.discovery.server-addr = 127.0.0.1:8848
+			spring.application.name=gulimall-coupon
+		
+		加上注解@EnableDiscoveryClient	
+		
+	
+	2.作为配置中心
+		同样是将依赖放在common服务中
+		<dependency>
+			<groupId>com.alibaba.cloud</groupId>
+			<artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+		<dependency>
+		
+		在resources下创建一个bootstrap.properties文件
+			spring.cloud.nacos.config.server-addr = 127.0.0.1:8848
+			spring.application.name=gulimall-coupon
+			spring.cloud.nacos.config.namespace=(对应的uuid一样的长字符串)
+			spring.cloud.nacos.config.group=1111(这个只针对gulimall-coupon.properties)
+			
+			spring.cloud.nacos.config.ext-config[0].data-id=datasource.yml
+			spring.cloud.nacos.config.ext-config[0].group=dev
+			spring.cloud.nacos,config.ext-config[0].refresh=true
+			
+			后面加载mybatis.yml,other.yml等
+		
+		在nacos网页中 点击配置列表->创建配置列表:
+						Data ID:  gulimall-coupon.properties(当前应用名)
+						配置格式:   properties
+						点击发布
+		在使用配置的地方使用@RefreshScore注解,则在网页上更新就会直接更新,是结合@Value("${配置项的名}")
+		如何配置中心有配置,先获取配置中心的
+		
+		更多细节
+			(1)命名空间:配置隔离
+				默认:public(保留空间):默认新增的所有配置都在public空间
+				1.新增开发,测试,生产:利用命名空间来做环境隔离
+				  注意:在bootstrap.properties配置中,需要使用哪个命名空间下的配置
+				
+				2.基于每一个微服务之间互相隔离,每一个微服务都创建自己的命名空间,只加载自己命名空间下的所有配置
+			
+			(2)配置集:所有配置的集合
+			
+			(3)配置集ID:类似文件名
+				DataID:类似文件名
+			
+			(4)配置分组
+				默认所有的配置集都属于:DEFAULT_GROUP:
+				Data ID:gulimall-coupon.properties
+				Group:1111
+				配置格式:
+				配置内容:coupon.user.name=haha
+						coupon.user.age=18
+						
+			(5).每个微服务创建自己的命名空间,使用配置分组区分环境:dev,test,prod
+			
+		
+		配置中心中加载多个配置集
+			创建与数据源相关的datasource.yml,mybatis相关的mybatis.yml
+			其它配置相关other.yml
+			同时还会读取默认的gulimall-coupon.properties
+			
+			也就是说后面只需要在bootstrap.properties说明加载配置中心哪些配置文件即可
+			
+		
+```
+
+
+
+
+
+###### (3)Spring Cloud OpenFeign
+
+```java
+	1.使用的是gulimall-member和gulimall-coupon两个服务来调用
+	
+	2.比如会员服务想调用优惠卷服务,那么再会员服务中引入openfeign依赖
+		(1).优惠卷服务
+		@RequestMapping("/member/list")
+		public R membercoupons(){
+			CouponEntity couponEntity  = new CouponEntity();
+			couponEntity.setCouponName("满100减10");
+			
+		 	return R.ok.put("coupons",Arrays.asList(couponEntity));
+		}
+		
+		
+		(2).会员服务
+			创建一个包放调用接口(feign)
+			@FeginClient("gulimall-coupon")  //在nacos的名字
+			public interface CouponFeginService{
+				
+				@RequestMapping("/coupon/coupon/member/list")
+				public R membercoupons();
+			
+			}
+			
+			开启远程调用功能,加上@EnableFeginClients(basePackages="com.atguigu.gulimall.member.feign")
+			
+			然后写一个获取获取某会员所有优惠卷的服务
+			@RequestMapping("/coupons")
+			public R test(){
+				MemberEntity memberEntity = new MemberEntity();
+				memberEntity.setNickname("张三");
+				
+				R membercoupons = couponFeginService.membercoupons();
+				
+				return R.ok().put("member",memberEntity).put("coupons",membercoupons.get("coupons"));
+			}
+			
+		
+```
+
+
+
+
+
+###### (4.)SpringCloud Geteway	
+
+```java
+创建一个gulimall-gateway服务
+排除数据源相关内容
+@SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
+
+引入依赖
+	<dependency>
+		<groupId>com.atguigu.gulimall</groupId>
+		<artifactId>gulimall-common</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	<dependency>
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-gateway</artifactId>
+	</dependency>
+	
+1.开启服务注册发现
+	配置nacos注册中心地址
+	application.properties	
+		spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
+		spring.application.name=gulimall-gateway
+		server.port=88
+	
+	bootstrap.yml中:
+		spring.cloud.nacos.config.server-addr=127.0.0.1:8848
+		spring.cloud.nacos.config.namespace=
+		spring.application.name=gulimall-gateway
+		
+	application.yml:
+		spring:
+			cloud:
+				gateway:
+					routes:
+						- id: test_route
+						  uri: https://ww.baidu.com
+						  predicates:
+						  	-Query=url,baidu
+						- id: qq_route
+						  uri: https://www.qq.com
+						  predicates:
+						  	- Query=url,qq
+```
+
+
+
+
+
+##### 6.ES6语法
+
+###### 	（1）let			
+
+```javascript
+	<script>
+    	//var声明的变量往往会越域
+        //let声明的变量有严格局部作用域
+        {
+        	var a = 1;
+        	let b = 2;
+    	}
+		console.log(a);  //14
+		console.log(b);  //ReferenceError: b is not defined
+
+		//var 可以声明多次
+		//let 只能声明一次
+		var m = 1
+		var m = 2
+        let n =3
+        let n = 4
+        console.log(m)  //2
+		console.log(n)  //Identifier 'n' has already been declared
+
+		//var 会变量提升
+		//let 不存在变量提升
+		console.log(x);      //undefined
+		var x = 10;
+		console.log(y);      //ReferenceError: y is not defined
+		let y = 20;
+		
+    </script>
+```
+
+
+
+###### (2).const
+
+```javascript
+1.声明之后不允许改变
+2.一但声明必须初始化,否则会报错
+
+const a =1;
+a = 3; //Uncaught TypeError: Assignment to constant variable
+```
+
+
+
+###### (3).解构表达式
+
+```javascript
+<script>
+	//数组结构
+	let arr = [1,2,3];
+	
+	let [a,b,c] = arr;
+
+	//对象结构
+	const person = {
+        name:"jack",
+        age:21,
+        language:["java","js","css"]
+    }
+    
+    const {name:abc,age,language} = person;
+
+	console.log(abc,age,language)
+<script>
+```
+
+
+
+###### (4).字符串扩展
+
+```javascript
+//1.新增方法
+let str = "hello.vue";
+console.log(str.startsWith("hello")); //true
+console.log(str.endsWith(".vue"));  //true
+console.log(str.includes("e"));    //true
+console.log(str.includes("hello")); //true
+
+//2.字符串模板
+let ss = `<div>
+			<span>hello world<span>
+</div>`;
+
+console.log(ss);
+
+//3.插值
+
+function fun(){
+    return "这是一个函数"
+}
+
+let info = `我是${abc},今年${age+10}了,我想说:${fun()}`;
+```
+
+
+
+###### (5).箭头函数
+
+```javascript
+//1.默认值,没传就会自动使用默认值
+function add2(a,b= 1 ){
+	return a+b;
+}
+
+//2.不定参数
+function fun(...values){
+    console.log(values.length)
+}
+
+fun(1,2) //2
+fun(1,2,3,4) //4
+
+
+//3.箭头函数
+var print = obj => console.log(obj);
+print("hello");
+
+var sum = (a,b) => a+b;
+
+var sum2 = (a,b) =>{
+    c = a+b;
+    return a+c;
+}
+
+//4.结合
+const person = {
+    name: 'jack',
+    age: 21,
+    language: ['java','js','css']
+}
+
+var hello2 = ({name}) => console.log("hello,"+name)
+
+hello2(person);
+```
+
+
+
+###### (6).对象优化
+
+```javascript
+<script>
+    //1.
+	const person = {
+		name:"jack",
+		age:21,
+		language:['java','js','css']
+	}
+
+
+console.log(Object.keys(person)); //["name","age","language"]
+console.log(Object.values(person)); //["jack",21,Array(3)]
+console.log(Object.entries(person)); //[Array(2),Array(2),Array(2)]
+
+//2.
+const target = {a:1};
+const source1 = {b:2};
+const source2 = {c:3};
+
+Object.assign(target,source1,source2);  //{a:1,b:2,c:3}
+
+//3.声明对象简写
+	const age = 23
+    const name = "张三"
+    const person1 = {age:age,name:name}
+    
+    const person2 = {age,name}
+    
+
+//4.对象的函数属性简写
+    let person3 = {
+        name:"jack",
+        //以前:
+        eat:function(food){
+            console.log(this.name + "在吃" + food);
+        },
+        //箭头函数this不能使用,对象,属性
+        eat2:food = > console.log(person3.name + "在吃" +food),
+        
+        eat3(food){
+            console.log(this.name + "在吃" + food);
+        }
+    } 
+    
+
+//5.拷贝对象(深拷贝)
+    let person1 = {name:"Amy",age:15}
+    let someone = {...person1}
+    
+//6.合并对象
+    let age = {age:15}
+    let name = {name: "Amy"}
+    let person2 = {...age,...name}
+<script>
+```
+
+
+
+###### (7).map redue方法
+
+```javascript
+//1.map方法
+let arr = ['1','20','-5','3']
+
+arr = arr.map(item => item*2);
+
+//2.reduce方法
+/**
+	1.previousValue 上一次调用回调返回的值,或者是提供的初始值(initialValue)
+	2.currentValue 数组中当前被处理的元素
+	3.index 当前元素在数组的索引
+	4.array 调用reduce的数组
+*/
+arr.reduce((a,b)=>{
+    console.log("上一次处理后:"+a);
+    console.log("当前正在处理:"+b);
+    return a+b;
+},100)
+```
+
